@@ -4,8 +4,7 @@
 #include <stdio.h>
 
 // Optional: use these functions to add debug or error prints to your application
-#define DEBUG_LOG(msg,...)
-//#define DEBUG_LOG(msg,...) printf("threading: " msg "\n" , ##__VA_ARGS__)
+#define DEBUG_LOG(msg,...) printf("threading: " msg "\n" , ##__VA_ARGS__)
 #define ERROR_LOG(msg,...) printf("threading ERROR: " msg "\n" , ##__VA_ARGS__)
 
 void* threadfunc(void* thread_param)
@@ -25,7 +24,7 @@ void* threadfunc(void* thread_param)
     int mutex_lock_status = pthread_mutex_lock(thread_func_args->mutex);
     if (mutex_lock_status != 0){
         // Mutex lock failed.
-        DEBUG_LOG("Mutex lock failed.");
+        ERROR_LOG("Mutex lock failed.");
         thread_func_args->thread_complete_success = false;
     } else {
         // Wait for the input-provided ms before release.
@@ -36,7 +35,7 @@ void* threadfunc(void* thread_param)
         int mutex_unlock_status = pthread_mutex_unlock(thread_func_args->mutex);
         if (mutex_unlock_status != 0){
             // Mutex unlock failed.
-            DEBUG_LOG("Mutex unlock failed.");
+            ERROR_LOG("Mutex unlock failed.");
             thread_func_args->thread_complete_success = false;
         }
     }
@@ -69,7 +68,7 @@ bool start_thread_obtaining_mutex(pthread_t *thread, pthread_mutex_t *mutex, int
     // Check for errors creating thread.
     if (thread_status != 0){
         // Thread creation failed.
-        DEBUG_LOG("Thread creation failed.");
+        ERROR_LOG("Thread creation failed.");
         return false;
     }
     // Thread creation succeded.
