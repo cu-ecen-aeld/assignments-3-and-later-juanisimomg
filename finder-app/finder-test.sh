@@ -8,7 +8,16 @@ set -u
 NUMFILES=10
 WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
-username=$(cat conf/username.txt)
+# username=$(cat conf/username.txt)
+username=$(cat /etc/finder-app/conf/username.txt)
+# Provide output file reference.
+OUTFILE=/tmp/assignment4-result.txt
+# Remove any existing output file to start from scratch every time.
+rm -f $OUTFILE
+# Create file again.
+touch $OUTFILE
+# Update permissions for everyone.
+chmod 777 $OUTFILE
 
 if [ $# -lt 3 ]
 then
@@ -59,6 +68,8 @@ do
 done
 
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+# Save output to file.
+echo $OUTPUTSTRING > $OUTFILE
 
 # remove temporary directories
 rm -rf /tmp/aeld-data
