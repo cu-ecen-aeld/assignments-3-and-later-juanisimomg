@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 		if (child_pid != 0)
 		{
 			// We are the parent process.
-			syslog(LOG_INFO, "Parent process is returning!");
+			syslog(LOG_INFO, "Parent process is returning! Child PID is %d", child_pid);
 			return 0;
 		}
 
@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 
 	int listen_backlog = 128;
 
+	syslog(LOG_INFO, "Starting to listen!");
+
 	int listen_status = listen(socket_fd, listen_backlog);
 
 	if(listen_status != 0) 
@@ -139,11 +141,24 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	syslog(LOG_INFO, "Listen succeeded!");
+
 	struct sockaddr input_addr;
 	socklen_t input_addrlen = sizeof(input_addr);
 
+	syslog(LOG_INFO, "Entering while loop!");
+
+	int check_before_accept = 0;
+	int check_after_accept = 0;
+
 	while(1) 
 	{
+		if(check_before_accept == 0)
+		{
+			syslog(LOG_INFO, "Trying to accept for the first time!");
+			check_before_accept = 1;
+		}
+
 		accepted_socket_fd = accept(socket_fd, (struct sockaddr *)&input_addr, &input_addrlen);
 
 		if(accepted_socket_fd == -1) 
@@ -151,6 +166,12 @@ int main(int argc, char *argv[])
 			syslog(LOG_INFO, "Accept error: %s", strerror(errno));
 			// Go back to accepting connections.
  			continue;
+		}
+
+		if(check_after_accept == 0)
+		{
+			syslog(LOG_INFO, "Accept succeeded for the first time!");
+			check_after_accept = 1;
 		}
 
 		struct sockaddr_in *client_addr = (struct sockaddr_in *)&input_addr;
