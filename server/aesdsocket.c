@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
 	if(socket_fd == -1)
 	{
-		syslog(LOG_ERR, "Socket file descriptor error.");
+		syslog(LOG_INFO, "Socket file descriptor error: %s", strerror(errno));
 		return -1;
 	}
 
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
 	if(setsockopt_status != 0)
 	{
-		syslog(LOG_ERR, "Socket options error.");
+		syslog(LOG_INFO, "Socket options error: %s", strerror(errno));
 		return -1;
 	}
 
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	
 	if(bind_status != 0)
 	{
-		syslog(LOG_ERR, "Binding error: %s", strerror(errno));
+		syslog(LOG_INFO, "Binding error: %s", strerror(errno));
 		return -1;
 	}
 
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 
 	if(listen_status != 0) 
 	{
-		syslog(LOG_ERR, "Listen error.");
+		syslog(LOG_INFO, "Listen error: %s", strerror(errno));
 		return -1;
 	}
 
@@ -127,14 +127,14 @@ int main(int argc, char *argv[])
 
 		if(accepted_socket_fd == -1) 
 		{
-			syslog(LOG_ERR, "Accept error.");
+			syslog(LOG_INFO, "Accept error: %s", strerror(errno));
 			// Go back to accepting connections.
  			continue;
 		}
 
 		struct sockaddr_in *client_addr = (struct sockaddr_in *)&input_addr;
  		
-		syslog(LOG_INFO, "Accepted connection from %s\n", inet_ntoa(client_addr->sin_addr));
+		syslog(LOG_INFO, "Accepted connection from %s", inet_ntoa(client_addr->sin_addr));
 
 		client_data = fdopen(accepted_socket_fd, "rb");
 
@@ -144,6 +144,8 @@ int main(int argc, char *argv[])
 			size_t n_bytes_size = 0;
 
 			ssize_t num_char_read = getline(&input_line, &n_bytes_size, client_data);
+
+			syslog(LOG_INFO, "Received: %s", input_line);
 
 			// If characters were read, write them to the file.
 			// Otherwise, let the while loop go back to accepting connections.
@@ -161,6 +163,7 @@ int main(int argc, char *argv[])
 				fseek(output_file, 0, SEEK_SET);
 				while ((size = fread(buffer, sizeof(char), BUFFER_SIZE, output_file)) > 0)
 				send(accepted_socket_fd, buffer, size, 0);
+				syslog(LOG_INFO, "Sent: %s\n", buffer);
 				fclose(output_file);
 				output_file = NULL;
 					
