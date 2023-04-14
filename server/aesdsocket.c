@@ -47,6 +47,7 @@ void signal_handler(int signal)
 	{
 		freeaddrinfo(servinfo);
 	}
+	// closelog();
 	remove(DATA_FILE);
 	exit(0);
 }
@@ -54,7 +55,7 @@ void signal_handler(int signal)
 
 int main(int argc, char *argv[])
 {
-	openlog(NULL, 0, LOG_USER);
+	// openlog(NULL, 0, LOG_USER);
 	syslog(LOG_INFO, "Starting!");
 	struct sigaction new_action;
 	memset(&new_action,0,sizeof(struct sigaction));
@@ -103,9 +104,29 @@ int main(int argc, char *argv[])
 
 	syslog(LOG_INFO, "Binding success!");
 
-	if(argc == 2 && strcmp(argv[1], "-d") == 0 && fork()) 
+	if(argc == 2 && strcmp(argv[1], "-d") == 0) 
 	{
-		exit(0);
+		// Daemon mode required.
+		syslog(LOG_INFO, "Deamon mode requested!");
+
+		pid_t child_pid = fork();
+
+		if (child_pid == -1)
+		{
+			// We could not create the child.
+			syslog(LOG_INFO, "Child creation failed: %s", strerror(errno));
+			return -1;
+		}
+
+		if (child_pid != 0)
+		{
+			// We are the parent process.
+			syslog(LOG_INFO, "Parent process is returning!");
+			return 0;
+		}
+
+		// For the child process, let execution continue.
+		syslog(LOG_INFO, "Child process continues!");
 	}
 
 	int listen_backlog = 128;
@@ -179,7 +200,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	
+	// closelog();
 	syslog(LOG_INFO, "Exiting");
 	return 0;
 }
