@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define BUFFER_SIZE 1024
 
@@ -53,6 +54,8 @@ void signal_handler(int signal)
 
 int main(int argc, char *argv[])
 {
+	openlog(NULL, 0, LOG_USER);
+	syslog(LOG_INFO, "Starting!");
 	struct sigaction new_action;
 	memset(&new_action,0,sizeof(struct sigaction));
 	new_action.sa_handler=signal_handler;
@@ -61,7 +64,8 @@ int main(int argc, char *argv[])
 
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	// hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
@@ -75,6 +79,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	syslog(LOG_INFO, "Socket file descriptor success!");
+
 	const int option = 1;
 
 	int setsockopt_status = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
@@ -85,13 +91,17 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	syslog(LOG_INFO, "Socket options success!");
+
 	int bind_status = bind(socket_fd, servinfo->ai_addr, servinfo->ai_addrlen);
 	
 	if(bind_status != 0)
 	{
-		syslog(LOG_ERR, "Binding error.");
+		syslog(LOG_ERR, "Binding error: %s", strerror(errno));
 		return -1;
 	}
+
+	syslog(LOG_INFO, "Binding success!");
 
 	if(argc == 2 && strcmp(argv[1], "-d") == 0 && fork()) 
 	{
