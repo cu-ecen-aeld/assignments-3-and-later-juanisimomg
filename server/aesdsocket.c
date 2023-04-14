@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo("localhost", "9000", &hints, &servinfo);
+	getaddrinfo(NULL, "9000", &hints, &servinfo);
 
 	socket_fd = socket(PF_INET, SOCK_STREAM, 0);
 
